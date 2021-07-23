@@ -29,7 +29,7 @@ const resolvers = {
     messages: () => messages,
   },
   Mutation: {
-    postMessage: (parent: any, message: Message) => {
+    postMessage: (parent: any, message: Message): number => {
       const id = messages.length;
       messages.push({
         id,
