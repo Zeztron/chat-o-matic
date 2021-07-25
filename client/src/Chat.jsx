@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ApolloClient,
   InMemoryCache,
   ApolloProvider,
   useQuery,
+  useMutation,
   gql,
 } from '@apollo/client';
 import { Container, Row, Col, FormInput, Button } from 'shards-react';
@@ -23,9 +24,15 @@ const GET_MESSAGES = gql`
   }
 `;
 
+const POST_MESSAGE = gql`
+  mutation ($user: String!, $content: String!) {
+    postMessage(user: $user, content: $content)
+  }
+`;
+
 const Messages = ({ user }) => {
   const { data } = useQuery(GET_MESSAGES);
-  console.log(data);
+
   if (!data) return null;
 
   return (
@@ -73,9 +80,63 @@ const Messages = ({ user }) => {
 };
 
 const Chat = () => {
+  const [state, setState] = useState({
+    user: 'Jack',
+    content: '',
+  });
+
+  const [postMessage] = useMutation(POST_MESSAGE);
+
+  const onSend = () => {
+    if (state.content.length > 0) {
+      postMessage({
+        variables: state,
+      });
+    }
+
+    setState({
+      ...state,
+      content: '',
+    });
+  };
+
   return (
     <Container>
-      <Messages user="haha" />
+      <Messages user={state.user} />
+      <Row>
+        <Col xs={2} style={{ padding: 0 }}>
+          <FormInput
+            label="User"
+            value={state.user}
+            onChange={(e) =>
+              setState({
+                ...state,
+                user: e.target.value,
+              })
+            }
+          />
+        </Col>
+        <Col xs={8}>
+          <FormInput
+            label="Content"
+            value={state.content}
+            onChange={(e) =>
+              setState({
+                ...state,
+                content: e.target.value,
+              })
+            }
+            onKeyUp={(e) => {
+              if (e.keyCode === 13) {
+                onSend();
+              }
+            }}
+          />
+        </Col>
+        <Col xs={2} style={{ padding: 0 }}>
+          <Button onClick={() => onSend()}>Send</Button>
+        </Col>
+      </Row>
     </Container>
   );
 };
